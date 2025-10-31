@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demo LZW – Estilo Canva</title>
+
+  <!-- Fuentes modernas -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Reveal.js -->
+  <link rel="stylesheet" href="dist/reset.css" />
+  <link rel="stylesheet" href="dist/reveal.css" />
+  <link rel="stylesheet" href="dist/theme/white.css" />
+
+  <style>
+    :root {
+      --bg-page: #fdfcff;
+      --text-primary: #2d1b4e;
+      --text-secondary: #6b5b8f;
+      --accent: #8b5cf6; /* Morado Canva-like */
+      --accent-hover: #7c3aed;
+      --border: #e9e2f3;
+      --card-bg: #ffffff;
+      --card-shadow: 0 4px 12px rgba(139, 92, 246, 0.08);
+      --radius: 12px;
+      --font-main: 'Inter', sans-serif;
+      --font-code: 'Fira Code', monospace;
+    }
+
+    body {
+      background-color: var(--bg-page);
+      font-family: var(--font-main);
+      color: var(--text-primary);
+    }
+
+    h1, h2, h3, h4 {
+      font-weight: 600;
+      margin-bottom: 0.5em;
+      color: var(--text-primary);
+    }
+
+    section {
+      text-align: center;
+    }
+
+    .container {
+      display: flex;
+      gap: 28px;
+      margin-top: 1.2em;
+      justify-content: center;
+    }
+
+    .input-section, .output-section {
+      flex: 1;
+      max-width: 480px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 130px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: var(--font-code);
+      font-size: 14px;
+      background: white;
+      color: var(--text-primary);
+      resize: vertical;
+      box-shadow: var(--card-shadow);
+    }
+
+    .result-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      min-height: 130px;
+      font-family: var(--font-code);
+      white-space: pre-wrap;
+      font-size: 14px;
+      box-shadow: var(--card-shadow);
+      text-align: left;
+    }
+
+    .step-controls {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: var(--font-main);
+      font-weight: 500;
+      font-size: 15px;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    button:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .current-step {
+      font-weight: 600;
+      color: var(--accent);
+      margin: 0 8px;
+      font-size: 16px;
+    }
+
+    /* Reveal.js override */
+    .reveal .slides section {
+      padding: 20px 40px;
+    }
+
+    .reveal h2 {
+      font-size: 2.2em;
+      margin-bottom: 1em;
+    }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- Diapositiva 1: Demostración Interactiva -->
+      <section>
+        <h2>Demostración Interactiva</h2>
+        <div class="container">
+          <div class="input-section">
+            <h4>Texto a comprimir</h4>
+            <textarea id="inputText">ABRACADABRA</textarea>
+            <div class="step-controls">
+              <button id="compressBtn">Comprimir</button>
+              <button id="resetBtn">Reiniciar</button>
+            </div>
+          </div>
+          <div class="output-section">
+            <h4>Resultado</h4>
+            <div id="output" class="result-box">Presiona "Comprimir" para ver el resultado</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Diapositiva 2: Visualización Paso a Paso -->
+      <section>
+        <h2>Visualización Paso a Paso</h2>
+        <div class="container">
+          <div class="input-section">
+            <h4>Texto de entrada</h4>
+            <textarea id="stepInput">TOBEORNOTTOBEORTOBEORNOT</textarea>
+            <div class="step-controls">
+              <button id="prevStep">← Anterior</button>
+              <span>Paso: <span class="current-step" id="stepCounter">0</span></span>
+              <button id="nextStep">Siguiente →</button>
+            </div>
+            <div class="step-controls">
+              <button id="fullCompress">Comprimir Todo</button>
+            </div>
+          </div>
+          <div class="output-section">
+            <h4>Estado actual</h4>
+            <div id="stepOutput" class="result-box">Usa los controles para avanzar</div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="dist/reveal.js"></script>
+  <script>
+    Reveal.initialize({ hash: true });
+
+    // === LZW básico ===
+    function comprimirLZW(texto) {
+      if (!texto) return { comprimido: [], diccionario: {} };
+      let diccionario = {}, codigo = 0;
+      for (let i = 0; i < 256; i++) diccionario[String.fromCharCode(i)] = codigo++;
+      let w = texto[0], resultado = [];
+      for (let i = 1; i < texto.length; i++) {
+        let c = texto[i], wc = w + c;
+        if (diccionario[wc] !== undefined) w = wc;
+        else {
+          resultado.push(diccionario[w]);
+          diccionario[wc] = codigo++;
+          w = c;
+        }
+      }
+      resultado.push(diccionario[w]);
+      return { comprimido: resultado, diccionario };
+    }
+
+    // === Paso a paso ===
+    let currentStep = 0, stepData = [];
+
+    function inicializarPasoAPaso(texto) {
+      currentStep = 0; stepData = [];
+      let diccionario = {}, codigo = 0;
+      for (let i = 0; i < 256; i++) diccionario[String.fromCharCode(i)] = codigo++;
+      if (!texto) return;
+      let w = texto[0];
+      stepData.push({ paso: 0, w, accion: `Inicio: w = "${w}"`, resultado: [], diccionario: JSON.parse(JSON.stringify(diccionario)) });
+      for (let i = 1; i < texto.length; i++) {
+        let c = texto[i], wc = w + c;
+        if (diccionario[wc] !== undefined) {
+          w = wc;
+          stepData.push({ paso: i, w, c, wc, accion: `"${wc}" existe → extender`, resultado: [], diccionario: JSON.parse(JSON.stringify(diccionario)) });
+        } else {
+          stepData.push({ paso: i, w, c, wc, accion: `Emitir ${diccionario[w]} para "${w}", añadir "${wc}" como ${codigo}`, resultado: [diccionario[w]], diccionario: JSON.parse(JSON.stringify({ ...diccionario, [wc]: codigo++ })) });
+          w = c;
+        }
+      }
+      stepData.push({ paso: texto.length, w, accion: "Emitir último código", resultado: [diccionario[w]], diccionario: JSON.parse(JSON.stringify(diccionario)) });
+    }
+
+    function mostrarPasoActual() {
+      const out = document.getElementById('stepOutput');
+      const counter = document.getElementById('stepCounter');
+      if (stepData.length === 0) return;
+      const p = stepData[currentStep];
+      counter.textContent = currentStep;
+      let txt = `Paso ${p.paso}\n`;
+      txt += `w = "${p.w}"\n`;
+      if (p.c) txt += `c = "${p.c}"\n`;
+      if (p.wc) txt += `wc = "${p.wc}"\n`;
+      txt += `→ ${p.accion}\n`;
+      if (p.resultado.length) txt += `Salida: [${p.resultado.join(', ')}]\n`;
+      out.textContent = txt;
+    }
+
+    // === Eventos ===
+    document.getElementById('compressBtn').addEventListener('click', () => {
+      const txt = document.getElementById('inputText').value;
+      const res = comprimirLZW(txt);
+      const ratio = txt.length ? ((1 - res.comprimido.length / txt.length) * 100).toFixed(1) : 0;
+      document.getElementById('output').textContent =
+        `Texto: "${txt}"\n` +
+        `Códigos: [${res.comprimido.join(', ')}]\n` +
+        `Compresión: ${txt.length} → ${res.comprimido.length} (${ratio}% reducción)`;
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      document.getElementById('inputText').value = 'ABRACADABRA';
+      document.getElementById('output').textContent = 'Presiona "Comprimir" para ver el resultado';
+    });
+
+    const stepIn = document.getElementById('stepInput');
+    stepIn.addEventListener('input', () => {
+      inicializarPasoAPaso(stepIn.value);
+      mostrarPasoActual();
+    });
+
+    document.getElementById('prevStep').addEventListener('click', () => {
+      if (currentStep > 0) { currentStep--; mostrarPasoActual(); }
+    });
+
+    document.getElementById('nextStep').addEventListener('click', () => {
+      if (currentStep < stepData.length - 1) { currentStep++; mostrarPasoActual(); }
+    });
+
+    document.getElementById('fullCompress').addEventListener('click', () => {
+      const txt = stepIn.value;
+      const res = comprimirLZW(txt);
+      document.getElementById('stepOutput').textContent = `Compresión completa:\nCódigos: [${res.comprimido.join(', ')}]`;
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      inicializarPasoAPaso(stepIn.value);
+      mostrarPasoActual();
+    });
+  </script>
+</body>
+</html>
