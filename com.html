@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algoritmos de Compresión - Análisis y Diseño de Algoritmos</title>
+    
+    <!-- Reveal.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/dist/theme/white.css" id="theme">
+    
+    <!-- Code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/plugin/highlight/monokai.css">
+    
+    <!-- MathJax -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        :root {
+            --main-color: #2c3e50;
+            --accent-color: #3498db;
+            --highlight-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+        }
+        
+        .reveal {
+            color: var(--main-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+            color: var(--accent-color);
+            text-transform: none;
+            margin-bottom: 0.8em;
+        }
+        
+        .reveal h1 {
+            border-bottom: 3px solid var(--accent-color);
+            padding-bottom: 0.3em;
+        }
+        
+        .reveal section img {
+            border: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        
+        .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .col {
+            flex: 1;
+            padding: 10px;
+        }
+        
+        .algorithm-table {
+            font-size: 0.7em;
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        .algorithm-table th, .algorithm-table td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .algorithm-table th {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        
+        .algorithm-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .huffman-tree {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .tree-level {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        
+        .tree-node {
+            padding: 10px 15px;
+            border: 2px solid var(--accent-color);
+            border-radius: 8px;
+            margin: 0 15px;
+            background-color: white;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .tree-connector {
+            width: 2px;
+            height: 25px;
+            background-color: var(--accent-color);
+            margin: 0 auto;
+        }
+        
+        .comparison-chart {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            height: 300px;
+            margin-top: 40px;
+            border-bottom: 2px solid var(--dark-color);
+            padding: 0 20px;
+        }
+        
+        .chart-bar {
+            width: 60px;
+            background-color: var(--accent-color);
+            margin: 0 10px;
+            position: relative;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            transition: height 0.5s ease;
+        }
+        
+        .chart-bar:nth-child(2) {
+            background-color: #2ecc71;
+        }
+        
+        .chart-bar:nth-child(3) {
+            background-color: #e74c3c;
+        }
+        
+        .chart-bar:nth-child(4) {
+            background-color: #f39c12;
+        }
+        
+        .chart-bar:nth-child(5) {
+            background-color: #9b59b6;
+        }
+        
+        .chart-label {
+            position: absolute;
+            bottom: -30px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .chart-value {
+            position: absolute;
+            top: -25px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.7em;
+            font-weight: bold;
+        }
+        
+        .math-formula {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            border-left: 4px solid var(--accent-color);
+            margin: 15px 0;
+        }
+        
+        .complexity-table {
+            width: 80%;
+            margin: 0 auto;
+            font-size: 0.8em;
+        }
+        
+        .complexity-table th {
+            background-color: var(--dark-color);
+            color: white;
+        }
+        
+        .complexity-table td {
+            text-align: center;
+        }
+        
+        .complexity-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.8em;
+        }
+        
+        .complexity-O1 { background-color: #2ecc71; color: white; }
+        .complexity-On { background-color: #f39c12; color: white; }
+        .complexity-On2 { background-color: #e74c3c; color: white; }
+        .complexity-Ologn { background-color: #3498db; color: white; }
+        
+        .pseudocode {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+            text-align: left;
+            overflow: auto;
+            max-height: 400px;
+        }
+        
+        .algorithm-steps {
+            text-align: left;
+            margin-left: 20px;
+        }
+        
+        .algorithm-steps li {
+            margin-bottom: 10px;
+        }
+        
+        .highlight {
+            color: var(--highlight-color);
+            font-weight: bold;
+        }
+        
+        .slide-number {
+            color: var(--dark-color) !important;
+        }
+        
+        .reveal .controls {
+            color: var(--accent-color) !important;
+        }
+        
+        .reveal .progress {
+            color: var(--accent-color) !important;
+        }
+        
+        .formula-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .formula-diagram .math {
+            margin: 0 20px;
+            font-size: 1.2em;
+        }
+        
+        .formula-diagram .arrow {
+            font-size: 2em;
+            color: var(--accent-color);
+            margin: 0 15px;
+        }
+        
+        .compression-ratio {
+            font-size: 1.2em;
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #e8f4fc;
+            border-radius: 8px;
+            border-left: 5px solid var(--accent-color);
+        }
+        
+        .complexity-chart {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            height: 250px;
+            margin: 30px 0;
+            border-bottom: 2px solid var(--dark-color);
+        }
+        
+        .complexity-bar {
+            width: 50px;
+            margin: 0 15px;
+            position: relative;
+            background-color: var(--accent-color);
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+        }
+        
+        .complexity-label {
+            position: absolute;
+            bottom: -25px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.7em;
+            font-weight: bold;
+        }
+        
+        .complexity-value {
+            position: absolute;
+            top: -20px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.7em;
+            font-weight: bold;
+        }
+        
+        .entropy-diagram {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .entropy-bar {
+            height: 20px;
+            margin: 5px 0;
+            background-color: var(--accent-color);
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+        
+        .entropy-label {
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            <!-- Portada -->
+            <section>
+                <h1>Algoritmos de Compresión</h1>
+                <h3>Análisis y Diseño de Algoritmos</h3>
+                <p>
+                    <small>Curso de Análisis y Diseño de Algoritmos</small>
+                </p>
+                <div style="margin-top: 40px;">
+                    <p style="font-size: 0.8em; color: #7f8c8d;">Profesor: [Nombre del Profesor]</p>
+                    <p style="font-size: 0.8em; color: #7f8c8d;">Estudiante: [Tu Nombre]</p>
+                </div>
+            </section>
+
+            <!-- Índice -->
+            <section>
+                <h2>Contenido</h2>
+                <ul>
+                    <li class="fragment">Fundamentos de compresión de datos</li>
+                    <li class="fragment">Entropía de la información</li>
+                    <li class="fragment">Algoritmos de compresión sin pérdida</li>
+                    <li class="fragment">Algoritmos de compresión con pérdida</li>
+                    <li class="fragment">Análisis de complejidad</li>
+                    <li class="fragment">Aplicaciones y comparativas</li>
+                </ul>
+            </section>
+
+            <!-- Fundamentos -->
+            <section>
+                <section>
+                    <h2>Fundamentos de Compresión</h2>
+                    <p>La compresión de datos consiste en representar información usando menos bits mediante la eliminación de redundancia.</p>
+                    
+                    <div class="container">
+                        <div class="col">
+                            <h4>Objetivos principales:</h4>
+                            <ul>
+                                <li class="fragment">Reducir requisitos de almacenamiento</li>
+                                <li class="fragment">Minimizar ancho de banda en transmisión</li>
+                                <li class="fragment">Acelerar transferencia de datos</li>
+                            </ul>
+                        </div>
+                        <div class="col">
+                            <h4>Relación de Compresión:</h4>
+                            <div class="math-formula fragment">
+                                \[ RC = \frac{Tamaño\ original}{Tamaño\ comprimido} \]
+                            </div>
+                            <p class="fragment">Ejemplo: Archivo de 100MB → 25MB comprimido</p>
+                            <div class="compression-ratio fragment">
+                                \( RC = \frac{100}{25} = 4:1 \)
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <section>
+                    <h2>Redundancia de Datos</h2>
+                    <p>La compresión se basa en identificar y eliminar tres tipos de redundancia:</p>
+                    
+                    <div class="container">
+                        <div class="col">
+                            <h4>1. Redundancia Estadística</h4>
+                            <p>Distribución no uniforme de símbolos</p>
+                            <div class="entropy-diagram">
+                                <div class="entropy-bar" style="width: 80%; background-color: #3498db;"></div>
+                                <div class="entropy-label">Símbolo A: Frecuencia 80%</div>
+                                
+                                <div class="entropy-bar" style="width: 10%; background-color: #2ecc71;"></div>
+                                <div class="entropy-label">Símbolo B: Frecuencia 10%</div>
+                                
+                                <div class="entropy-bar" style="width: 5%; background-color: #e74c3c;"></div>
+                                <div class="entropy-label">Símbolo C: Frecuencia 5%</div>
+                                
+                                <div class="entropy-bar" style="width: 5%; background-color: #f39c12;"></div>
+                                <div class="entropy-label">Símbolo D: Frecuencia 5%</div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h4>2. Redundancia Espacial/Temporal</h4>
+                            <p>Patrones repetitivos en datos</p>
+                            <div class="math-formula">
+                                "ABABABABAB" → "5(AB)"
+                            </div>
+                            
+                            <h4 style="margin-top: 30px;">3. Redundancia Psicológica</h4>
+                            <p>Información imperceptible para humanos</p>
+                            <p class="fragment">(Compresión con pérdida)</p>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Entropía -->
+            <section>
+                <section>
+                    <h2>Entropía de la Información</h2>
+                    <p>Concepto fundamental de la teoría de la información desarrollado por Claude Shannon</p>
+                    
+                    <div class="math-formula">
+                        \[ H(X) = - \sum_{i=1}^{n} P(x_i) \log_2 P(x_i) \]
+                    </div>
+                    
+                    <p>Donde:</p>
+                    <ul>
+                        <li>\( H(X) \) = Entropía de la fuente \( X \) (en bits)</li>
+                        <li>\( P(x_i) \) = Probabilidad del símbolo \( x_i \)</li>
+                        <li>\( n \) = Número de símbolos posibles</li>
+                    </ul>
+                </section>
+                
+                <section>
+                    <h2>Interpretación de la Entropía</h2>
+                    
+                    <div class="container">
+                        <div class="col">
+                            <h4>Ejemplo 1: Fuente de 2 símbolos</h4>
+                            <p>Símbolos: A, B con P(A) = 0.5, P(B) = 0.5</p>
+                            <div class="math-formula">
+                                \[ H(X) = -[0.5 \cdot \log_2(0.5) + 0.5 \cdot \log_2(0.5)] \]
+                                \[ H(X) = -[0.5 \cdot (-1) + 0.5 \cdot (-1)] = 1 \text{ bit} \]
+                            </div>
+                            <p>Máxima entropía → Mínima compresibilidad</p>
+                        </div>
+                        <div class="col">
+                            <h4>Ejemplo 2: Fuente sesgada</h4>
+                            <p>Símbolos: A, B con P(A) = 0.9, P(B) = 0.1</p>
+                            <div class="math-formula">
+                                \[ H(X) = -[0.9 \cdot \log_2(0.9) + 0.1 \cdot \log_2(0.1)] \]
+                                \[ H(X) \approx -[0.9 \cdot (-0.152) + 0.1 \cdot (-3.322)] \]
+                                \[ H(X) \approx 0.469 \text{ bits} \]
+                            </div>
+                            <p>Baja entropía → Alta compresibilidad</p>
+                        </div>
+                    </div>
+                </section>
+                
+                <section>
+                    <h2>Límite Teórico de Compresión</h2>
+                    <p>Según el teorema de codificación de fuente de Shannon:</p>
+                    
+                    <div class="math-formula">
+                        \[ L \geq H(X) \]
+                    </div>
+                    
+                    <p>Donde \( L \) es la longitud promedio del código</p>
+                    
+                    <div class="fragment">
+                        <p>Para una fuente con entropía \( H(X) \), es imposible crear un código con longitud promedio menor que \( H(X) \) bits por símbolo.</p>
+                        
+                        <div class="compression-ratio">
+                            Eficiencia del código: \( \eta = \frac{H(X)}{L} \)
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Algoritmos sin pérdida -->
+            <section>
+                <section>
+                    <h2>Algoritmos Sin Pérdida</h2>
+                    <p>Permiten recuperar exactamente los datos originales</p>
+                    
+                    <div class="container">
+                        <div class="col">
+                            <h4>Codificación Entrópica</h4>
+                            <ul>
+                                <li>Huffman Coding</li>
+                                <li>Arithmetic Coding</li>
+                                <li>ANS (Asymmetric Numeral Systems)</li>
+                            </ul>
+                        </div>
+                        <div class="col">
+                            <h4>Compresión por Diccionario</h4>
+                            <ul>
+                                <li>LZ77 y LZ78</li>
+                                <li>LZW (Lempel-Ziv-Welch)</li>
+                                <li>Deflate (LZ77 + Huffman)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+                
+                <section>
+                    <h2>Codificación de Huffman</h2>
+                    <p>Algoritmo voraz que construye códigos de prefijo óptimos</p>
+                    
+                    <div class="container">
+                        <div class="col">
+                            <h4>Pseudocódigo:</h4>
+                            <div class="pseudocode">
+                                <ol class="algorithm-steps">
+                                    <li>Calcular frecuencia de cada símbolo</li>
+                                    <li>Crear nodo hoja para cada símbolo</li>
+                                    <li>Repetir hasta tener un solo nodo:
+                                        <ul>
+                                            <li>Seleccionar dos nodos con menor frecuencia</li>
+                                            <li>Crear nodo padre con frecuencia = suma</li>
+                                            <li>Asignar 0 a rama izquierda, 1 a derecha</li>
+                                        </ul>
+                                    </li>
+                                    <li>El código de cada símbolo es el camino desde la raíz</li>
+                                </ol>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h4>Ejemplo: "ABRACADABRA"</h4>
+                            <div class="huffman-tree">
+                                <div class="tree-level">
+                                    <div class="tree-node">A:5</div>
+                                </div>
+                                <div class="tree-connector"></div>
+                                <div class="tree-level">
+                                    <div class="tree-node">0</div>
+                                    <div class="tree-node">1</div>
+                                </div>
+                                <div class="tree-connector"></div>
+                                <div class="tree-level">
+                                    <div class="tree-node">B:2</div>
+                                    <div class="tree-node">R:2</div>
+                                </div>
+                                <div class="tree-connector"></div>
+                                <div class="tree-level">
+                                    <div class="tree-node">0</div>
+                                    <div class="tree-node">1</div>
+                                    <div class="tree-node">0</div>
+                                    <div class="tree-node">1</div>
+                                </div>
+                                <div class="tree-connector"></div>
+                                <div class="tree-level">
+                                    <div class="tree-node">C:1</div>
+                                    <div class="tree-node">D:1</div>
+                                </div>
+                            </div>
+                            <p>Códigos resultantes:</p>
+                            <ul>
+                                <li>A: 0</li>
+                                <li>B: 100</li>
+                                <li>R: 101</li>
+                                <li>C: 110</li>
+                                <li>D: 111</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+                
+                <section>
+                    <h2>Algoritmo LZW</h2>
+                    <p>Compresión por diccionario que construye tablas dinámicamente</p>
+                    
+                    <div class="container">
+                        <div class="col">
+                            <h4>Funcionamiento:</h4>
+                            <div class="pseudocode">
+                                <ol class="algorithm-steps">
+                                    <li>Inicializar diccionario con símbolos individuales</li>
+                                    <li>P = primer carácter de entrada</li>
+                                    <li>Mientras haya caracteres por leer:
+                                        <ul>
+                                            <li>C = próximo carácter</li>
+                                            <li>Si P+C está en diccionario:
+                                                <ul>
+                                                    <li>P = P+C</li>
+                                                </ul>
+                                            </li>
+                                            <li>Si no:
+                                                <ul>
+                                                    <li>Emitir código para P</li>
+                                                    <li>Agregar P+C al diccionario</li>
+                                                    <li>P = C</li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li>Emitir código para P</li>
+                                </ol>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h4>Ejemplo: Comprimir "ABABABA"</h4>
+                            <table class="algorithm-table">
+                                <tr>
+                                    <th>Entrada</th>
+                                    <th>Salida</th>
+                                    <th>Nueva entrada</th>
+                                </tr>
+                                <tr>
+                                    <td>A</td>
+                                    <td>65</td>
+                                    <td>256: AB</td>
+                                </tr>
+                                <tr>
+                                    <td>B</td>
+                                    <td>66</td>
+                                    <td>257: BA</td>
+                                </tr>
+                                <tr>
+                                    <td>AB</td>
+                                    <td>256</td>
+                                    <td>258: ABA</td>
+                                </tr>
+                                <tr>
+                                    <td>ABA</td>
+                                    <td>258</td>
+                                    <td>-</td>
+                                </tr>
+                            </table>
+                            
+                            <div class="math-formula" style="margin-top: 20px;">
+                                Entrada: "ABABABA" → Salida: 65, 66, 256, 258
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Algoritmos con pérdida -->
+            <section>
+                <section>
+                    <h2>Algoritmos Con Pérdida</h2>
+                    <p>Eliminan información considerada menos importante basándose en modelos perceptuales</p>
+                    
+                    <div class="container">
+                        <div class="col">
+                            <h4>Principios:</h4>
+                            <ul>
+                                <li class="fragment">Explotar limitaciones del sistema perceptual humano</li>
+                                <li class="fragment">Transformar datos al dominio de frecuencia</li>
+                                <li class="fragment">Cuantización: reducir precisión de coeficientes</li>
+                                <li class="fragment">Codificación entrópica de los resultados</li>
+                            </ul>
+                        </div>
+                        <div class="col">
+                            <h4>Transformaciones comunes:</h4>
+                            <ul>
+                                <li class="fragment">DCT (Discrete Cosine Transform)</li>
+                                <li class="fragment">Wavelet Transform</li>
+                                <li class="fragment">MDCT (Modified Discrete Cosine Transform)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+                
+                <section>
+                    <h2>Algoritmo JPEG</h2>
+                    <p>Estándar para compresión de imágenes fotográficas</p>
+                    
+                    <div class="container">
+                        <div class="col">
+                            <h4>Proceso de compresión:</h4>
+                            <ol class="algorithm-steps">
+                                <li>Conversión de RGB a YCbCr</li>
+                                <li>Submuestreo de croma (reducir resolución de color)</li>
+                                <li>Aplicar DCT a bloques 8x8</li>
+                                <li>Cuantización de coeficientes DCT</li>
+                                <li>Codificación entrópica (generalmente Huffman)</li>
+                            </ol>
+                            
+                            <h4 style="margin-top: 20px;">Transformada Discreta del Coseno (DCT):</h4>
+                            <div class="math-formula" style="font-size: 0.8em;">
+                                \[ F(u,v) = \frac{1}{4} C(u)C(v) \sum_{x=0}^{7} \sum_{y=0}^{7} f(x,y) \cos\left[\frac{(2x+1)u\pi}{16}\right] \cos\left[\frac{(2y+1)v\pi}{16}\right] \]
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h4>Diagrama de Flujo JPEG:</h4>
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                                <div class="formula-diagram">
+                                    <div style="text-align: center;">
+                                        <div style="background: #3498db; color: white; padding: 10px; border-radius: 4px;">Imagen RGB</div>
+                                        <div>↓</div>
+                                    </div>
+                                    <div class="arrow">→</div>
+                                    <div style="text-align: center;">
+                                        <div style="background: #2ecc71; color: white; padding: 10px; border-radius: 4px;">YCbCr + Submuestreo</div>
+                                        <div>↓</div>
+                                    </div>
+                                    <div class="arrow">→</div>
+                                    <div style="text-align: center;">
+                                        <div style="background: #e74c3c; color: white; padding: 10px; border-radius: 4px;">DCT 8×8</div>
+                                        <div>↓</div>
+                                    </div>
+                                </div>
+                                <div class="formula-diagram">
+                                    <div style="text-align: center;">
+                                        <div style="background: #f39c12; color: white; padding: 10px; border-radius: 4px;">Cuantización</div>
+                                        <div>↓</div>
+                                    </div>
+                                    <div class="arrow">→</div>
+                                    <div style="text-align: center;">
+                                        <div style="background: #9b59b6; color: white; padding: 10px; border-radius: 4px;">Codificación Entrópica</div>
+                                        <div>↓</div>
+                                    </div>
+                                    <div class="arrow">→</div>
+                                    <div style="text-align: center;">
+                                        <div style="background: #1abc9c; color: white; padding: 10px; border-radius: 4px;">Datos Comprimidos</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <h4 style="margin-top: 20px;">Matriz de Cuantización JPEG:</h4>
+                            <div style="font-size: 0.7em;">
+                                \[ Q = \begin{bmatrix}
+                                16 & 11 & 10 & 16 & 24 & 40 & 51 & 61 \\
+                                12 & 12 & 14 & 19 & 26 & 58 & 60 & 55 \\
+                                14 & 13 & 16 & 24 & 40 & 57 & 69 & 56 \\
+                                14 & 17 & 22 & 29 & 51 & 87 & 80 & 62 \\
+                                18 & 22 & 37 & 56 & 68 & 109 & 103 & 77 \\
+                                24 & 35 & 55 & 64 & 81 & 104 & 113 & 92 \\
+                                49 & 64 & 78 & 87 & 103 & 121 & 120 & 101 \\
+                                72 & 92 & 95 & 98 & 112 & 100 & 103 & 99
+                                \end{bmatrix} \]
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Análisis de complejidad -->
+            <section>
+                <section>
+                    <h2>Análisis de Complejidad</h2>
+                    <p>Comparación de complejidad temporal y espacial de algoritmos de compresión</p>
+                    
+                    <table class="complexity-table">
+                        <tr>
+                            <th>Algoritmo</th>
+                            <th>Compresión</th>
+                            <th>Descompresión</th>
+                            <th>Memoria</th>
+                            <th>Notas</th>
+                        </tr>
+                        <tr>
+                            <td>Huffman</td>
+                            <td><span class="complexity-badge complexity-On">O(n log k)</span></td>
+                            <td><span class="complexity-badge complexity-On">O(n)</span></td>
+                            <td><span class="complexity-badge complexity-On">O(k)</span></td>
+                            <td>k = tamaño alfabeto</td>
+                        </tr>
+                        <tr>
+                            <td>LZW</td>
+                            <td><span class="complexity-badge complexity-On">O(n)</span></td>
+                            <td><span class="complexity-badge complexity-On">O(n)</span></td>
+                            <td><span class="complexity-badge complexity-On">O(m)</span></td>
+                            <td>m = tamaño diccionario</td>
+                        </tr>
+                        <tr>
+                            <td>Arithmetic Coding</td>
+                            <td><span class="complexity-badge complexity-On">O(n)</span></td>
+                            <td><span class="complexity-badge complexity-On">O(n)</span></td>
+                            <td><span class="complexity-badge complexity-O1">O(1)</span></td>
+                            <td>Precisión numérica limitada</td>
+                        </tr>
+                        <tr>
+                            <td>JPEG (DCT)</td>
+                            <td><span class="complexity-badge complexity-On2">O(n²)</span></td>
+                            <td><span class="complexity-badge complexity-On2">O(n²)</span></td>
+                            <td><span class="complexity-badge complexity-O1">O(1)</span></td>
+                            <td>Por bloque 8×8</td>
+                        </tr>
+                    </table>
+                </section>
+                
+                <section>
+                    <h2>Complejidad en la Práctica</h2>
+                    <p>Comparación visual de complejidades temporales</p>
+                    
+                    <div class="complexity-chart">
+                        <div class="complexity-bar" style="height: 40%;">
+                            <div class="complexity-value">O(1)</div>
+                            <div class="complexity-label">Constante</div>
+                        </div>
+                        <div class="complexity-bar" style="height: 50%;">
+                            <div class="complexity-value">O(log n)</div>
+                            <div class="complexity-label">Logarítmica</div>
+                        </div>
+                        <div class="complexity-bar" style="height: 70%;">
+                            <div class="complexity-value">O(n)</div>
+                            <div class="complexity-label">Lineal</div>
+                        </div>
+                        <div class="complexity-bar" style="height: 90%;">
+                            <div class="complexity-value">O(n log n)</div>
+                            <div class="complexity-label">Linealítmica</div>
+                        </div>
+                        <div class="complexity-bar" style="height: 100%;">
+                            <div class="complexity-value">O(n²)</div>
+                            <div class="complexity-label">Cuadrática</div>
+                        </div>
+                    </div>
+                    
+                    <div class="container" style="margin-top: 40px;">
+                        <div class="col">
+                            <h4>Complejidad de Huffman:</h4>
+                            <ul>
+                                <li>Construcción del árbol: O(k log k)</li>
+                                <li>Codificación: O(n)</li>
+                                <li>Decodificación: O(n)</li>
+                                <li>k = tamaño del alfabeto</li>
+                                <li>n = longitud del mensaje</li>
+                            </ul>
+                        </div>
+                        <div class="col">
+                            <h4>Complejidad de LZW:</h4>
+                            <ul>
+                                <li>Compresión: O(n)</li>
+                                <li>Descompresión: O(n)</li>
+                                <li>Uso de tabla hash para búsquedas O(1)</li>
+                                <li>Memoria: O(m) para el diccionario</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Aplicaciones y comparativas -->
+            <section>
+                <section>
+                    <h2>Aplicaciones y Comparativas</h2>
+                    <p>Rendimiento de diferentes algoritmos en diversos tipos de datos</p>
+                    
+                    <div class="comparison-chart">
+                        <div class="chart-bar" style="height: 60%;">
+                            <div class="chart-value">60%</div>
+                            <div class="chart-label">Huffman</div>
+                        </div>
+                        <div class="chart-bar" style="height: 70%;">
+                            <div class="chart-value">70%</div>
+                            <div class="chart-label">LZW</div>
+                        </div>
+                        <div class="chart-bar" style="height: 75%;">
+                            <div class="chart-value">75%</div>
+                            <div class="chart-label">GZIP</div>
+                        </div>
+                        <div class="chart-bar" style="height: 85%;">
+                            <div class="chart-value">85%</div>
+                            <div class="chart-label">Brotli</div>
+                        </div>
+                        <div class="chart-bar" style="height: 90%;">
+                            <div class="chart-value">90%</div>
+                            <div class="chart-label">Zstandard</div>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.8em; margin-top: 20px;">Nota: Porcentajes indican relación de compresión promedio en datos de texto</p>
+                </section>
+                
+                <section>
+                    <h2>Selección de Algoritmos</h2>
+                    <p>Guía para elegir el algoritmo adecuado según el contexto</p>
+                    
+                    <table class="algorithm-table">
+                        <tr>
+                            <th>Tipo de Datos</th>
+                            <th>Algoritmo Recomendado</th>
+                            <th>Relación Compresión</th>
+                            <th>Consideraciones</th>
+                        </tr>
+                        <tr>
+                            <td>Texto</td>
+                            <td>Brotli, Zstandard</td>
+                            <td>Alta (80-90%)</td>
+                            <td>Balance entre velocidad y compresión</td>
+                        </tr>
+                        <tr>
+                            <td>Ejecutables</td>
+                            <td>LZMA, Zstandard</td>
+                            <td>Media-Alta (70-85%)</td>
+                            <td>Enfocado en máxima compresión</td>
+                        </tr>
+                        <tr>
+                            <td>Imágenes</td>
+                            <td>PNG (sin pérdida), JPEG (con pérdida)</td>
+                            <td>Variable (50-95%)</td>
+                            <td>Depende del tipo de imagen y calidad requerida</td>
+                        </tr>
+                        <tr>
+                            <td>Audio</td>
+                            <td>FLAC (sin pérdida), Opus (con pérdida)</td>
+                            <td>Media-Alta (60-90%)</td>
+                            <td>Compresión adaptada a percepción auditiva</td>
+                        </tr>
+                        <tr>
+                            <td>Video</td>
+                            <td>AV1, H.265</td>
+                            <td>Muy Alta (90-99%)</td>
+                            <td>Alta complejidad computacional</td>
+                        </tr>
+                    </table>
+                </section>
+                
+                <section>
+                    <h2>Límites y Futuro</h2>
+                    <p>Desafíos y tendencias en compresión de datos</p>
+                    
+                    <div class="container">
+                        <div class="col">
+                            <h4>Límites Teóricos:</h4>
+                            <ul>
+                                <li>Límite de Shannon: \( L \geq H(X) \)</li>
+                                <li>Compresión sin pérdida tiene límite inferior</li>
+                                <li>Datos aleatorios son incompresibles</li>
+                            </ul>
+                            
+                            <h4 style="margin-top: 30px;">Tendencias Actuales:</h4>
+                            <ul>
+                                <li>Compresión neuronal</li>
+                                <li>Algoritmos específicos por dominio</li>
+                                <li>Compresión en tiempo real para streaming</li>
+                            </ul>
+                        </div>
+                        <div class="col">
+                            <h4>Compresión Neuronal:</h4>
+                            <div class="formula-diagram">
+                                <div style="text-align: center;">
+                                    <div style="background: #3498db; color: white; padding: 10px; border-radius: 4px;">Datos Originales</div>
+                                    <div>↓</div>
+                                </div>
+                                <div class="arrow">→</div>
+                                <div style="text-align: center;">
+                                    <div style="background: #2ecc71; color: white; padding: 10px; border-radius: 4px;">Encoder NN</div>
+                                    <div>↓</div>
+                                </div>
+                                <div class="arrow">→</div>
+                                <div style="text-align: center;">
+                                    <div style="background: #e74c3c; color: white; padding: 10px; border-radius: 4px;">Representación Latente</div>
+                                    <div>↓</div>
+                                </div>
+                            </div>
+                            <div class="formula-diagram">
+                                <div style="text-align: center;">
+                                    <div style="background: #f39c12; color: white; padding: 10px; border-radius: 4px;">Decoder NN</div>
+                                    <div>↓</div>
+                                </div>
+                                <div class="arrow">→</div>
+                                <div style="text-align: center;">
+                                    <div style="background: #9b59b6; color: white; padding: 10px; border-radius: 4px;">Datos Reconstruidos</div>
+                                </div>
+                            </div>
+                            <p style="font-size: 0.8em; margin-top: 10px;">Las redes neuronales aprenden representaciones comprimidas de los datos</p>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Conclusión -->
+            <section>
+                <h2>Conclusiones</h2>
+                
+                <div class="container">
+                    <div class="col">
+                        <h4>Puntos Clave:</h4>
+                        <ul>
+                            <li class="fragment">La compresión se basa en eliminar redundancia</li>
+                            <li class="fragment">La entropía define el límite teórico de compresión</li>
+                            <li class="fragment">Huffman es óptimo para códigos de prefijo</li>
+                            <li class="fragment">LZW aprovecha repeticiones en los datos</li>
+                            <li class="fragment">JPEG usa transformadas y cuantización</li>
+                        </ul>
+                    </div>
+                    <div class="col">
+                        <h4>En Análisis de Algoritmos:</h4>
+                        <ul>
+                            <li class="fragment">Comprender complejidad temporal y espacial</li>
+                            <li class="fragment">Analizar trade-offs entre compresión y velocidad</li>
+                            <li class="fragment">Evaluar adecuación del algoritmo al tipo de datos</li>
+                            <li class="fragment">Considerar límites teóricos y prácticos</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="fragment" style="margin-top: 40px;">
+                    <h3>¡Gracias!</h3>
+                    <p>¿Preguntas?</p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Scripts de Reveal.js -->
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/plugin/zoom/zoom.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/plugin/search/search.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/plugin/highlight/highlight.js"></script>
+    
+    <script>
+        // Inicialización de Reveal.js
+        Reveal.initialize({
+            controls: true,
+            progress: true,
+            center: true,
+            hash: true,
+            transition: 'slide',
+            slideNumber: true,
+
+            // Revelar.js plugins
+            plugins: [ RevealZoom, RevealNotes, RevealSearch, RevealMarkdown, RevealHighlight ],
+            
+            // Configuración de MathJax
+            math: {
+                mathjax: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js',
+                config: 'TeX-AMS_HTML-full',
+                tex2jax: {
+                    inlineMath: [['$','$'], ['\\(','\\)']],
+                    displayMath: [['$$','$$'], ['\\[','\\]']],
+                    balanceBraces: true,
+                    processEscapes: false,
+                    processRefs: true,
+                    processEnvironments: true,
+                    preview: 'TeX',
+                    skipTags: ['script','noscript','style','textarea','pre','code'],
+                    ignoreClass: 'tex2jax_ignore',
+                    processClass: 'tex2jax_process'
+                }
+            }
+        });
+        
+        // Configuración adicional para gráficos animados
+        Reveal.addEventListener('slidechanged', function(event) {
+            // Animar gráficos de barras cuando se muestre la diapositiva
+            if (event.currentSlide.querySelector('.comparison-chart')) {
+                setTimeout(() => {
+                    const bars = event.currentSlide.querySelectorAll('.chart-bar');
+                    bars.forEach(bar => {
+                        bar.style.height = bar.style.height;
+                    });
+                }, 500);
+            }
+            
+            if (event.currentSlide.querySelector('.complexity-chart')) {
+                setTimeout(() => {
+                    const bars = event.currentSlide.querySelectorAll('.complexity-bar');
+                    bars.forEach(bar => {
+                        bar.style.height = bar.style.height;
+                    });
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>
